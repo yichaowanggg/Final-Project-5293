@@ -17,6 +17,7 @@ book:
       This book was built with <a href="https://quarto.org/">Quarto</a>.
   repo-actions: [edit, issue]
   chapters:
+    - introduction.qmd
     - index.qmd
     - data.qmd
     - results.qmd
@@ -27,5 +28,6 @@ format:
   html:
     theme: cosmo
     code-fold: true
+    
 
 
