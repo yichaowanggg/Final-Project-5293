@@ -333,7 +333,7 @@ Number of Fisher Scoring iterations: 5</code></pre>
 </div>
 </div>
 <p>Based on the logistic model we generated, the summary result shows that statistically significant predictors include <code>browsing_time</code>, <code>category_count</code>, <code>clicked_ad</code>, <code>items_in_cart</code>, and <code>previous_purchases</code>. This means that these five feature have important impact in purchase behavior. However, <code>device_type</code> is not significant (p = 0.764), indicating that switching from desktop to mobile does not have a strong independent effect on the likelihood of purchase in this model. Signs of coefficients match the logic of the simulation (positive for most predictors, negative for category count), though values differ slightly due to added noise. Additionally, the residual deviance of 438.31, compared to the null deviance of 683.31, suggests that the model explains a substantial portion of the variability in the outcome. By adding these six predictors, the deviance reduced from 683.31 to 438.31, means that our features signigicantly improve the model’s predicting ability. The overall logistic model at this step can be written as:</p>
-<p><span class="math display">\[
+<p><span class="math display">\[\begin{equation}
 \log\left(\frac{P(\text{purchase} = 1)}{1 - P(\text{purchase} = 1)}\right) =
 -1.1147 + 0.8417 \cdot \text{browsing_time}
 - 0.7234 \cdot \text{category_count}
@@ -341,7 +341,7 @@ Number of Fisher Scoring iterations: 5</code></pre>
 + 0.5856 \cdot \text{items_in_cart}
 + 0.0721 \cdot \text{device_type}_{\text{mobile}}
 + 0.7629 \cdot \text{previous_purchases}
-\]</span></p>
+\end{equation}\]</span></p>
 </section>
 <section id="added-variable-plots" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="added-variable-plots"><span class="header-section-number">3.2</span> Added Variable Plots</h2>
