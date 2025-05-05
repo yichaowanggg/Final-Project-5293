@@ -1,5 +1,77 @@
 # Data
 
 ## Description
+Instead of downloading the dataset from website or from the packages, we replicate a dataset that reflects usual user interactions on an online shopping platform in a controlled and interpretable environment to investigate e-commerce buying behavior. The dataset contains both binary and continuous variables often used in consumer behaviour modelling; each observation relates to one user session. From time spent on the website to interaction history, we developed six explanatory variables and one binary response variable (buy) to capture various facets of a user's purchasing session. The final purchase result is a binary indicator, it equals 1 if the user bought the product and 0 otherwise.
 
-## Missing value analysis
+
+## Feature Explanation
+Specifically, the dataset includes the following predictor variables:
+
+  - `browsing_time`(numeric): Time (in hours) spent browsing the platform during the session.
+  - `category_count`(integer): Number of different product categories the user interacted with.
+  - `clicked_ad`(binary): Whether the user clicked on any product advertisement (1 = yeas, 0 = no).
+  - `items_in_cart`(integer): Number of items added to the shopping cart.
+  - `device_type`(categorical): Device used for browsing, coded as “desktop” or “mobile”.
+  - `previous_purchase`(binary): Whether the user previously made the purchase on the platform (1 = yeas, 0 = no).
+  
+The response variable is also a binary variable:
+
+  - `purchase`(binary): Whether the user complete a purchase during the session (1 = yeas, 0 = no).
+
+## Data simulation
+To simulate these data, we created the six characteristics and the response variable using frequently used statistical distributions to replicate the dataset. 
+
+  - `browsing_time`: drawn from a Normal distribution with a mean = 3 and standard deviation = 1.
+  - `category_count`: sampled from a Poisson distribution with $\lambda = 4$.
+  - `clicked_ad`: generated from a Bernoulli distribution with a success probability of 0.35($p = 0.35$).
+  - `items_in_cart`: sampled from a Poisson distribution with $\lambda = 2$.
+  - `device_type`: created as a binary variable with $60%$ probability of being a desktop user and $40%$ being the mobile user.
+  - `previous_purchase`: generated froma Bernoulli distribution with $p = 0.25$.
+  - `purchase`: derived using a logistic model with a linear combination of the predictors and additional Gaussian noise for realism.
+
+Here is our simulated dataset:
+```{r}
+set.seed(5293)
+n <- 500
+
+# Generate the features for the dataset
+browsing_time <- rnorm(n, mean = 3, sd = 1)               # hours
+category_count <- rpois(n, lambda = 4)                    # integer count
+clicked_ad <- rbinom(n, 1, prob = 0.35)                   # binary
+items_in_cart <- rpois(n, lambda = 2)                     # integer count
+device_type <- rbinom(n, 1, prob = 0.6)                   # 0 = desktop, 1 = mobile
+previous_purchases <- rbinom(n, 1, prob = 0.25)           # binary
+noise <- rnorm(n, 0, 0.5)
+
+# Simulate outcome
+logit <- -1 + 
+  0.8 * browsing_time - 
+  0.6 * category_count + 
+  1.2 * clicked_ad + 
+  0.5 * items_in_cart + 
+  0.4 * previous_purchases +
+  0.3 * device_type +
+  noise
+
+p <- 1 / (1 + exp(-logit))
+purchase <- rbinom(n, 1, p)
+
+# Assemble data frame
+sim_data <- data.frame(
+  browsing_time,
+  category_count,
+  clicked_ad,
+  items_in_cart,
+  device_type = factor(device_type, levels = c(0, 1), labels = c("desktop", "mobile")),
+  previous_purchases,
+  purchase
+)
+
+head(sim_data)
+```
+
+
+
+
+
+
