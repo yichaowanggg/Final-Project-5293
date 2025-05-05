@@ -20,7 +20,7 @@ book:
     - data.qmd
     - results-linear.qmd
     - results-non-linear.qmd
-    - d3graph.qmd
+    - comparsion.qmd
     - conclusion.qmd
 
 format:

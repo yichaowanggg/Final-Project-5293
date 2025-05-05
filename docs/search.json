@@ -95,5 +95,15 @@
     "crumbs": [
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>Linear Model</span>"
     ]
+  },
+  {
+    "objectID": "results-non-linear.html",
+    "href": "results-non-linear.html",
+    "title": "4  Non Linear Model",
+    "section": "",
+    "text": "4.1 Fit the Random Forest\nCode\n# Fit the random forest model\nrf_model &lt;- randomForest(\n  purchase ~ .,\n  data = sim_data,\n  ntree = 100,\n  importance = TRUE\n)\n\n\nWarning in randomForest.default(m, y, ...): The response has five or fewer\nunique values.  Are you sure you want to do regression?\n\n\nCode\n# View model summary\nprint(rf_model)\n\n\n\nCall:\n randomForest(formula = purchase ~ ., data = sim_data, ntree = 100,      importance = TRUE) \n               Type of random forest: regression\n                     Number of trees: 100\nNo. of variables tried at each split: 2\n\n          Mean of squared residuals: 0.1628973\n                    % Var explained: 33.54",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Non Linear Model</span>"
+    ]
   }
 ]
