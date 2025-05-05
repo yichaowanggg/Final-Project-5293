@@ -3,6 +3,43 @@ We now move to construct a predictive model after simulating our dataset with im
 
 ## Fit the Linear Model (logistic regression)
 ```{r}
+set.seed(5293)
+n <- 500
+
+# Generate the features for the dataset
+browsing_time <- rnorm(n, mean = 3, sd = 1)               # hours
+category_count <- rpois(n, lambda = 4)                    # integer count
+clicked_ad <- rbinom(n, 1, prob = 0.35)                   # binary
+items_in_cart <- rpois(n, lambda = 2)                     # integer count
+device_type <- rbinom(n, 1, prob = 0.6)                   # 0 = desktop, 1 = mobile
+previous_purchases <- rbinom(n, 1, prob = 0.25)           # binary
+noise <- rnorm(n, 0, 0.5)
+
+# Simulate outcome
+logit <- -1 + 
+  0.8 * browsing_time - 
+  0.6 * category_count + 
+  1.2 * clicked_ad + 
+  0.5 * items_in_cart + 
+  0.4 * previous_purchases +
+  0.3 * device_type +
+  noise
+
+p <- 1 / (1 + exp(-logit))
+purchase <- rbinom(n, 1, p)
+
+# Assemble data frame
+sim_data <- data.frame(
+  browsing_time,
+  category_count,
+  clicked_ad,
+  items_in_cart,
+  device_type = factor(device_type, levels = c(0, 1), labels = c("desktop", "mobile")),
+  previous_purchases,
+  purchase
+)
+
+head(sim_data)
 # fit the logistic regression model
 log_model <- glm(purchase ~ ., data = sim_data, family = "binomial")
 
