@@ -1,1 +1,2 @@
 # Linear Model
+We now move to construct a predictive model after simulating our dataset with important behavioral characteristics connected to online buying. Ou response variable buy being binary (1 = purchased, 0 = no purchase), we estimate the probability of purchase as a function of the six explanatory variables using a Logistic Regression model. It is different from the 
