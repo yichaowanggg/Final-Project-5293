@@ -1,2 +1,86 @@
 # Linear Model
-We now move to construct a predictive model after simulating our dataset with important behavioral characteristics connected to online buying. Ou response variable buy being binary (1 = purchased, 0 = no purchase), we estimate the probability of purchase as a function of the six explanatory variables using a Logistic Regression model. It is different from the 
+We now move to construct a predictive model after simulating our dataset with important behavioral characteristics connected to online buying. Ou response variable buy being binary (1 = purchased, 0 = no purchase), we estimate the probability of purchase as a function of the six explanatory variables using a Logistic Regression model. It is a suitable option that models the log-odds of purchase as a linear mixture of the six characteristics, given that the outcome variable is binary. The coefficient predicted by the logistic model here could vary from the "ground truth" coefficients we used to simulated the dataset. Added random noise and sample variation cause this difference, which more genuinely represents uncertainty in a real-world data. We estimate how well the model recovers the underlying data-generating process by contrasting the projected coefficients with the known ground truth.
+
+## Fit the Linear Model (logistic regression)
+```{r}
+# fit the logistic regression model
+log_model <- glm(purchase ~ ., data = sim_data, family = "binomial")
+
+summary(log_model)
+```
+
+Based on the logistic model we generated, the summary result shows that statistically significant predictors include `browsing_time`, `category_count`, `clicked_ad`, `items_in_cart`, and `previous_purchases`. This means that these five feature have important impact in purchase behavior. However, `device_type` is not significant (p = 0.764), indicating that switching from desktop to mobile does not have a strong independent effect on the likelihood of purchase in this model. Signs of coefficients match the logic of the simulation (positive for most predictors, negative for category count), though values differ slightly due to added noise. Additionally, the residual deviance of 438.31, compared to the null deviance of 683.31, suggests that the model explains a substantial portion of the variability in the outcome. By adding these six predictors, the deviance reduced from 683.31 to 438.31, means that our features signigicantly improve the model's predicting ability. The overall logistic model at this step can be written as:
+
+$$
+\log\left(\frac{P(\text{purchase} = 1)}{1 - P(\text{purchase} = 1)}\right) = 
+-1.1147 + 0.8417 \cdot \text{browsing_time} 
+- 0.7234 \cdot \text{category_count} 
++ 1.6193 \cdot \text{clicked_ad} 
++ 0.5856 \cdot \text{items_in_cart} 
++ 0.0721 \cdot \text{device_type}_{\text{mobile}} 
++ 0.7629 \cdot \text{previous_purchases}
+$$
+
+
+## Added Variable Plots
+
+To further analysis the contribution of each individual predictors, we use the Added Variable Plot (AVP) to more fully considering the influences of other variables. By graphing the response residuals (after regressing out the other predictors) against the predictor residuals (after regressing it out from the other predictors as well), this diagnostic tool shows the partial link between the outcome and a chosen predictor.
+
+```{r}
+library(tidyverse)
+library(broom)
+
+# numeric predictors
+numeric_vars <- sim_data %>%
+  select(where(is.numeric)) %>%
+  select(-purchase) %>%
+  colnames()
+
+# compute AVP residuals and SD of fit per feature
+avp_list <- lapply(numeric_vars, function(var) {
+  other_vars <- setdiff(numeric_vars, var)
+  model_y <- glm(as.formula(paste("purchase ~", paste(other_vars, collapse = " + "))),
+                 data = sim_data, family = "binomial")
+  res_y <- resid(model_y)
+  model_x <- lm(as.formula(paste(var, "~", paste(other_vars, collapse = " + "))),
+                data = sim_data)
+  res_x <- resid(model_x)
+  avp_fit <- lm(res_y ~ res_x)
+  fit_vals <- predict(avp_fit)
+  sd_fit <- sd(fit_vals)
+  tibble(
+    feature = var,
+    res_x = res_x,
+    res_y = res_y,
+    fit = fit_vals,
+    sd_fit = sd_fit
+  )
+})
+
+# Combine into dataframe
+avp_df <- bind_rows(avp_list)
+
+# Order by descending SD
+sd_order <- avp_df %>%
+  group_by(feature) %>%
+  summarise(sd_fit = first(sd_fit)) %>%
+  arrange(desc(sd_fit))
+
+avp_df$feature <- factor(avp_df$feature, levels = sd_order$feature)
+
+# Plot 
+ggplot(avp_df, aes(x = res_x, y = res_y)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", color = "blue", linewidth = 0.8) +
+  facet_wrap(~ feature, scales = "free_x") +
+  labs(
+    title = "Added Variable Plots",
+    x = "Feature residual (unexplained by other predictors)",
+    y = "Purchase residual (unexplained by other predictors)"
+  ) +
+  theme_minimal()
+```
+
+
+
+
