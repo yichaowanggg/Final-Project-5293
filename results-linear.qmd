@@ -2,18 +2,20 @@
 
 We now move to construct a predictive model after simulating our dataset with important behavioral characteristics connected to online buying. Ou response variable buy being binary (1 = purchased, 0 = no purchase), we estimate the probability of purchase as a function of the six explanatory variables using a Logistic Regression model. It is a suitable option that models the log-odds of purchase as a linear mixture of the six characteristics, given that the outcome variable is binary. The coefficient predicted by the logistic model here could vary from the "ground truth" coefficients we used to simulated the dataset. Added random noise and sample variation cause this difference, which more genuinely represents uncertainty in a real-world data. We estimate how well the model recovers the underlying data-generating process by contrasting the projected coefficients with the known ground truth.
 before the modelling process, install all packages and load the dataset.
-```{r}
+```{r, echo=TRUE, results='hide'}
 # packages
 library(ggplot2)
 library(tidyverse)
 library(broom)
 library(dplyr)
 library(tidyr)
-
 library(pdp)
 library(lime)
 library(randomForest)
 library(vip)
+```
+
+```{r, echo=TRUE, results='hide'}
 set.seed(5293)
 n <- 500
 
