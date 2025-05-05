@@ -1,1 +1,14 @@
 # Introduction
+
+In recent decades, the online shopping has played an increasing role in people's daily lives, the convenience and time saving of it has greatly improved our lifestyle. When we shopping online, an interesting phenomenon is that the recommendation section at the main page keep displaying the products that similar to the products we have previously viewed or searched in the searching engine. Sometimes, as an example of myself, I did not buy it directly but add to cart for later instead, but at other time, I was attracted by the recommended products and buy it immediately. These behaviors is driving firms trying to enhance customer experience and conversion rate to increasingly value knowledge of the elements influencing e-commerce buying behavior. With the machine learning course we have learned this semester, although its algorithms can precisely forecast the user's behavior, it is also vital to know why a model produce particular predictions.
+
+
+In this project, we intends to mimic an e-commerce environment and investigate how user-level characteristics, such as browsing time, number of categories viewed, number of products in cart, affect the probability of completing a purchase. We not only basically generate the predictive classifier but also evaluate the model interpretability using both linear(Logistic Regression) and non-linear(Random Forest) models. For each model, we create the three different plots to visualize the feature importance and understand the activity of our models. Our plots types are:
+
+  - Added Variable Plots
+  - Partial Dependence Plots
+  - LIME plots
+  
+These tools allow us to further explore which features are importance for two models and how consistent the interpretations are across local and global perspectives. By perform the comparison between the result of two models, we can also gain information about the accuracy and difference about the two models.
+
+
