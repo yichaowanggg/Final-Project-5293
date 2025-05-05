@@ -201,8 +201,6 @@ These plots offer valuable insights into model behavior and feature effects. Sta
 
 ### LIME 
 
-However, although these worldwide techniques help to grasp typical impacts throughout the whole dataset, they cannot clarify why a certain case got its distinctive forecast.
-
 Based on the results from the model and the two types of plots we have already generated, we have gained insight into the overall influence and trends of each individual feature on the predicted purchase probability. However, although we can gain the insights through these two plots we have already used, they fail to explain why a specific instance received its particular prediction. To address this limitation, we apply LIME, which provides localized explanations for individual predictions by approximating the model’s behavior near a given instance using a simple, interpretable model. By doing so, LIME allows us to uncover which specific features drove the prediction for each user, and in what direction. Here we choose to analysis the first three observation as our instance and perform the LIME plot on them.
 ```{r, message = FALSE, warning = FALSE}
 set.seed(5293)
@@ -325,5 +323,94 @@ Based on the result from PDP plots, which we plot then in descending standard de
 
 
 ### LIME
+Similar as for Linear model, we also perform the LIME to capture the important features for each case in our test set(the first three observations).
+```{r, message = FALSE, warning = FALSE}
+set.seed(5293)
+model_type.randomForest <- function(x, ...) 'classification'
+
+# Train Random Forest model
+rf_model <- randomForest(purchase ~ ., data = train_data, ntree = 100)
+
+explainer_rf <- lime(
+  x = train_data %>% select(-purchase),
+  model = rf_model,
+  bin_continuous = TRUE
+)
+explanation_rf <- explain(
+  x = test_data %>% select(-purchase),
+  explainer = explainer_rf,
+  n_labels = 1,
+  n_features = 3  # top 3 features per instance
+)
+plot_features(explanation_rf)
+
+```
+  - For case 1: The model correctly predicted a non-purchase with 69% probability. Features like having 1 or less goods in the basket, a moderate browsing time (between 2.26 and 2.99), and a mid-range category count all helped to support this mainly since they all harmed the purchase probability.
+  - For case 2: The model wrongly predicted a purchase with 85% probability. Two features (low category count and moderate items in cart) support the purchase prediction. Short browsing time slightly contradicts it, but overall, the model predicts purchase.
+  - For case 3: The model correctly predicts purchase, with 76% probability, mainly due to low category count, but two features pull against that. The moderate fit suggests the explanation is reasonably reliable.
+
+
+### Model Evaluation
+To better understand the overall contribution of each feature to the prediction accuracy of the Random Forest model, we apply permutation importance. For each variables, we randomly shuffling its values and observing the changes in result in model performance. The idea is that if shuffling a feature substantially decreases the accuracy, that feature must be important for the model. For the robustness, we also calculate the $90%$ confidence interval.
+```{r}
+# Set seed
+set.seed(5293)
+
+# Train the model
+rf_model <- randomForest(as.factor(purchase) ~ ., data = sim_data)
+
+# Run permutation importance 30 times
+perm_list <- replicate(
+  30,
+  vi_permute(
+    object = rf_model,
+    feature_names = setdiff(names(sim_data), "purchase"),
+    train = sim_data,
+    target = "purchase",
+    metric = "accuracy",
+    nsim = 1,
+    pred_wrapper = function(object, newdata) {
+      predict(object, newdata = newdata, type = "response")
+    }
+  ),
+  simplify = FALSE
+)
+
+# Combine results
+raw_long <- bind_rows(perm_list, .id = "rep")
+
+# Compute 90% percentile-based CI
+ci_bounds <- raw_long %>%
+  group_by(Variable) %>%
+  summarise(
+    mean = mean(Importance),
+    lower = quantile(Importance, 0.05),
+    upper = quantile(Importance, 0.95),
+    .groups = "drop"
+  )
+
+```
+
+```{r}
+ggplot(raw_long, aes(x = Importance, y = reorder(Variable, Importance))) +
+  geom_jitter(size = 1, height = 0.3, alpha = 0.6) +
+  geom_errorbarh(
+    data = ci_bounds,
+    mapping = aes(xmin = lower, xmax = upper, y = reorder(Variable, mean)),
+    inherit.aes = FALSE, 
+    height = 0.2,
+    color = "red",
+    linewidth = 0.8
+  ) +
+  labs(
+    title = "Permutation Importance with 90% CI (Percentile Method)",
+    x = "Importance",
+    y = "Variable"
+  ) +
+  theme_minimal()
+
+```
+
+Based on the importance plot with the $90%$ as the error bar, we can gain the permutation importance scores. Specifically, `category_count` is the most influential variable, with the highest mean importance and a comparable narrow confidence interval, indicating it consistently contributes to predictive performance. Follow with `browsing_time` and `items_in_cart`, they also show strong importance, meaning the browsing time and the number of items in their cart are also important for predicting purchases. By contrast, `previous_purchases` is the least important, with lowest mean importance, meaning that their influence on the model's predictions is relatively minor. The result from here somehow consist with the result from the AVP of the linear model and the pdp plots from the non-linear models. A more detailed comparsion and analysis will present in the comparsion section.
 
 
