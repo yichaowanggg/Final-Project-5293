@@ -9,6 +9,6 @@ In this project, we intends to mimic an e-commerce environment and investigate h
   - Partial Dependence Plots
   - LIME plots
   
-These tools allow us to further explore which features are importance for two models and how consistent the interpretations are across local and global perspectives. By perform the comparison between the result of two models, we can also gain information about the accuracy and difference about the two models.
+These tools allow us to further explore which features are important for two models and how consistent the interpretations are across local and global perspectives. With our shopping behavior scenario, they allow us to gain the information about the features that influence the final purchase behavior and the consistence of influential feature of two models. By perform the comparison between the result of two models, we can also gain information about the accuracy and difference about the two models.
 
 
