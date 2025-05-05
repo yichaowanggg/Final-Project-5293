@@ -1,21 +1,7 @@
 # Non Linear Model
 
 Based on the result we got previously from the linear model, we now aim to further investigate some more flexible model. Although the linear model gave us a strong basis and let us understand the patterns and individual feature contributions, it is naturally constrained in its capacity to capture non-linear interactions between variables. Hence we trained a Random Forest mode, which build many decision trees and combining their results, to helps us to explore the interaction effects and they can capture complex, non-linear relationships and interactions between variables. Furthermore, Random Forest is still compatible with interpretation tools like as Permutation Importance, PDP, and LIME, hence allowing a consistent and understandable analysis across modelling techniques.
-Before the modelling process, install all packages:
-```{r, echo=TRUE, results='hide', message = FALSE, warning = FALSE}
-# packages
-library(ggplot2)
-library(tidyverse)
-library(broom)
-library(dplyr)
-library(tidyr)
-library(pdp)
-library(lime)
-library(randomForest)
-library(vip)
-```
 
-And load the dataset we simulated before:
 ```{r, echo=TRUE, results='hide'}
 set.seed(5293)
 n <- 500
@@ -55,12 +41,11 @@ sim_data <- data.frame(
 #head(sim_data)
 ```
 
-
-
 ## Fit the Random Forest Model
 
 We trained the model on the same dataset as the linear models, `sim_data`, and fit the model by buliding 100 decision trees with randomly choose two variables at every split. To assist further interpretation, the model also monitors variable relevance.
 ```{r, message = FALSE, warning = FALSE}
+library(randomForest)
 # Fit the random forest model
 rf_model <- randomForest(
   purchase ~ .,
@@ -139,6 +124,10 @@ Based on the result from PDP plots, which we plot then in descending standard de
 set.seed(5293)
 model_type.randomForest <- function(x, ...) 'classification'
 
+# test train split(choose the first three observations as our instances) 
+test_data <- sim_data[1:3, ]          
+train_data <- sim_data[-(1:3), ] 
+
 # Train Random Forest model
 rf_model <- randomForest(purchase ~ ., data = train_data, ntree = 100)
 
@@ -156,7 +145,6 @@ explanation_rf <- explain(
 plot_features(explanation_rf)
 
 ```
-
 
 
 

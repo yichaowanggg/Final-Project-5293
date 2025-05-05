@@ -64,7 +64,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./conclusion.html" rel="next">
+<link href="./comparsion.html" rel="next">
 <link href="./results-linear.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -169,8 +169,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./comparsion.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Compasrion between two models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./conclusion.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Conclusion</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Conclusion</span></span></a>
   </div>
 </li>
     </ul>
@@ -183,7 +189,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#fit-the-random-forest" id="toc-fit-the-random-forest" class="nav-link active" data-scroll-target="#fit-the-random-forest"><span class="header-section-number">4.1</span> Fit the Random Forest</a></li>
+  <li><a href="#fit-the-random-forest-model" id="toc-fit-the-random-forest-model" class="nav-link active" data-scroll-target="#fit-the-random-forest-model"><span class="header-section-number">4.1</span> Fit the Random Forest Model</a></li>
+  <li><a href="#partial-dependence-plots" id="toc-partial-dependence-plots" class="nav-link" data-scroll-target="#partial-dependence-plots"><span class="header-section-number">4.2</span> Partial Dependence Plots</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://yichaowanggg.github.io/Final-Project-5293/edit/main/results-non-linear.qmd" class="toc-action"><i class="bi bi-git"></i>Edit this page</a></li><li><a href="https://yichaowanggg.github.io/Final-Project-5293/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -209,7 +216,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Based on the result we got previously from the linear model, we now aim to further investigate some more flexible model. Although the linear model gave us a strong basis and let us understand the patterns and individual feature contributions, it is naturally constrained in its capacity to capture non-linear interactions between variables. Hence we trained a Random Forest mode, which build many decision trees and combining their results, to helps us to explore the interaction effects. Furthermore, Random Forest is still compatible with interpretation tools like as Permutation Importance, PDP, and LIME, hence allowing a consistent and understandable analysis across modelling techniques. Before the modelling process, install all packages:</p>
+<p>Based on the result we got previously from the linear model, we now aim to further investigate some more flexible model. Although the linear model gave us a strong basis and let us understand the patterns and individual feature contributions, it is naturally constrained in its capacity to capture non-linear interactions between variables. Hence we trained a Random Forest mode, which build many decision trees and combining their results, to helps us to explore the interaction effects and they can capture complex, non-linear relationships and interactions between variables. Furthermore, Random Forest is still compatible with interpretation tools like as Permutation Importance, PDP, and LIME, hence allowing a consistent and understandable analysis across modelling techniques. Before the modelling process, install all packages:</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -267,8 +274,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#head(sim_data)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="fit-the-random-forest" class="level2" data-number="4.1">
-<h2 data-number="4.1" class="anchored" data-anchor-id="fit-the-random-forest"><span class="header-section-number">4.1</span> Fit the Random Forest</h2>
+<section id="fit-the-random-forest-model" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="fit-the-random-forest-model"><span class="header-section-number">4.1</span> Fit the Random Forest Model</h2>
+<p>We trained the model on the same dataset as the linear models, <code>sim_data</code>, and fit the model by buliding 100 decision trees with randomly choose two variables at every split. To assist further interpretation, the model also monitors variable relevance.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -278,16 +286,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> sim_data,</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ntree =</span> <span class="dv">100</span>,</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">importance =</span> <span class="cn">TRUE</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in randomForest.default(m, y, ...): The response has five or fewer
-unique values.  Are you sure you want to do regression?</code></pre>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View model summary</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rf_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># View model summary</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(rf_model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -301,6 +303,73 @@ No. of variables tried at each split: 2
                     % Var explained: 33.54</code></pre>
 </div>
 </div>
+<p>Based on the summary result of the model we trained, the Out-of-Bag (OOB) error estimate is 25%, indicating that about 75% of observations were accurately predicted on average by the ensemble. The confusion matrix also shows class-specific errors: a 32% misclassification rate for class no purchase and a 20% misclassification rate for purchase.</p>
+<p>For the AVPs, while are useful tools for linear models, they are not suitable for non-linear models like Random Forests. This is because AVPs are based on the assumption of linear additivity that they visualize the marginal effect of one predictor on the response after adjusting for others in a linear regression setting. Hence, we rely on the other two plots, PDP and LIME, to interpret non-linear models more appropriately.</p>
+</section>
+<section id="partial-dependence-plots" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="partial-dependence-plots"><span class="header-section-number">4.2</span> Partial Dependence Plots</h2>
+<p>In non-linear models, PDPs help us to better understand how each feature influences the projections of our non-linear model. Even when the model incorporates complex, non-linear interactions, this allows us to see the marginal influence of every variable.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract numeric variables from sim_data</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>num_vars <span class="ot">&lt;-</span> sim_data <span class="sc">%&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(is.numeric)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>()</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare rug data for plotting</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>rug_df <span class="ot">&lt;-</span> sim_data <span class="sc">%&gt;%</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">all_of</span>(num_vars)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"variable"</span>, <span class="at">values_to =</span> <span class="st">"x"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Create PDPs for each numeric feature</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>pdp_list_rf <span class="ot">&lt;-</span> <span class="fu">lapply</span>(num_vars, <span class="cf">function</span>(var) {</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  pd <span class="ot">&lt;-</span> pdp<span class="sc">::</span><span class="fu">partial</span>(</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">object =</span> rf_model,</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">pred.var =</span> var,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">train =</span> sim_data,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">prob =</span> <span class="cn">TRUE</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(pd)[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="st">"x"</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  pd<span class="sc">$</span>variable <span class="ot">&lt;-</span> var</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  pd</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine into single data frame</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>pdp_df_rf <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(pdp_list_rf)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Sort variables by standard deviation</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>sd_order <span class="ot">&lt;-</span> pdp_df_rf <span class="sc">%&gt;%</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(variable) <span class="sc">%&gt;%</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">sd_yhat =</span> <span class="fu">sd</span>(yhat)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(sd_yhat))</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Reorder for plotting</span></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>pdp_df_rf<span class="sc">$</span>variable <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">as.character</span>(pdp_df_rf<span class="sc">$</span>variable),</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>                             <span class="at">levels =</span> <span class="fu">as.character</span>(sd_order<span class="sc">$</span>variable))</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>rug_df<span class="sc">$</span>variable <span class="ot">&lt;-</span> <span class="fu">factor</span>(<span class="fu">as.character</span>(rug_df<span class="sc">$</span>variable),</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>                          <span class="at">levels =</span> <span class="fu">as.character</span>(sd_order<span class="sc">$</span>variable))</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(pdp_df_rf, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> yhat)) <span class="sc">+</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">linewidth =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_rug</span>(<span class="at">data =</span> rug_df, <span class="fu">aes</span>(<span class="at">x =</span> x), <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">alpha =</span> <span class="fl">0.2</span>, <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> variable, <span class="at">scales =</span> <span class="st">"free_x"</span>) <span class="sc">+</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"PDP – Random Forest"</span>,</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Feature Value"</span>) <span class="sc">+</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="results-non-linear_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Based on the result from PDP plots, which we plot then in descending standard deviation order, we analysis their trends case by case.</p>
+<p><code>category_count</code>: it shows a stong upward trend, suggesting that consumers who explore more product categories are considerably more likely to buy, probably because of more involvement or interest. <code>browsing_time</code> reveals an inverted U-shaped correlation, which means the probability of purchasing rises first but falls significantly after 2.5–3 hours, implying that prolonged browsing could indicate not purchase rather than buying. <code>clicked_ad</code> shows a negative linear trend as well, suggesting that people who click on advertising are really less likely to purchase. Likewise, <code>items_in_cart</code> has a significant negative slope that could suggest more items in the cart correspond to lower purchase probability. Lastly, <code>previous_purchases</code> presents a slight negative effect, suggesting that users with previous purchases show a slightly lower probability of purchasing again.</p>
 
 
 </section>
@@ -733,8 +802,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./conclusion.html" class="pagination-link" aria-label="Conclusion">
-        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Conclusion</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./comparsion.html" class="pagination-link" aria-label="Compasrion between two models">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Compasrion between two models</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

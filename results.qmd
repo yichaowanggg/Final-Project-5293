@@ -1,5 +1,6 @@
-# Linear Model
+# Results of Linear and Non-linear Models
 
+## Linear Model
 We now move to construct a predictive model after simulating our dataset with important behavioral characteristics connected to online buying. Ou response variable buy being binary (1 = purchased, 0 = no purchase), we estimate the probability of purchase as a function of the six explanatory variables using a Logistic Regression model. It is a suitable option that models the log-odds of purchase as a linear mixture of the six characteristics, given that the outcome variable is binary. The coefficient predicted by the logistic model here could vary from the "ground truth" coefficients we used to simulated the dataset. Added random noise and sample variation cause this difference, which more genuinely represents uncertainty in a real-world data. We estimate how well the model recovers the underlying data-generating process by contrasting the projected coefficients with the known ground truth.
 
 Before the modelling process, install all packages:
@@ -56,7 +57,7 @@ sim_data <- data.frame(
 #head(sim_data)
 ```
 
-## Fit the Linear Model (logistic regression)
+### Fit the Linear Model (logistic regression)
 ```{r}
 sim_data <- sim_data
 # fit the logistic regression model
@@ -79,7 +80,7 @@ Based on the logistic model we generated, the summary result shows that statisti
 
 
 
-## Added Variable Plots
+### Added Variable Plots
 
 To further analysis the contribution of each individual predictors, we use the Added Variable Plot (AVP) to more fully considering the influences of other variables. By graphing the response residuals (after regressing out the other predictors) against the predictor residuals (after regressing it out from the other predictors as well), this diagnostic tool shows the partial link between the outcome and a chosen predictor.
 
@@ -144,7 +145,7 @@ After considering all additional factors in the logistic regression model, the A
 The graphs reveal that `category_count` has a substantial negative linear correlation with the response residuals, suggesting a notable negative link with the likelihood of purchase even after other attributes are controlled. All three variables, `browsing_time`, `clicked_ad`, and `items_in_cart`, show clear positive linear trends consistent with the idea that more browsing, clicks, and cart activity usually raise the probability of purchase. The plot for `previous_purchases` shows a weaker and less clear trend, suggesting its marginal contribution is smaller, which is consistent with its less significant coefficient in the logistic regression we got above at fitting the model. At last, `device_type` would fit its high p-value in the regression summary and may not be as important. These graphs show generally where the linear model fits well and help visually verify the significance of the strongest predictors.
 
 
-## Partial Dependence Plots
+### Partial Dependence Plots
 
 We now look at Partial Dependence Plots (PDPs) to investigate further the marginal influence of each feature throughout its whole range—holding all other variables constant. PDPs assist us to better understand how changes in individual feature values affect the estimated purchase probability of the model and are especially good for visualising possible nonlinear connections.
 
@@ -198,8 +199,6 @@ ggplot(pdp_df, aes(x = x, y = yhat)) +
 These plots offer valuable insights into model behavior and feature effects. Starting with     `category_count`, we see a significant negative nonlinear association with purchase probability, those who browse several product categories are less likely to convert. Users lazily perusing several sorts of products may show decision weariness or a lack of buying intent. On the other hand, `browsing_time` reveals a consistent and obvious upward trend suggesting that people who spend more time on the website are more likely to buy. This probably indicates more involvement and thought. Likewise, `items_in_cart` is strongly positively correlated with purchase likelihood, hence supporting the idea that consumers with more items in their cart are nearer to complete the purchase. `clicked_ad` shows a positive increase in likelihood, implying that ad-clicking activity is a significant indicator of conversion intention. Finally, `past_purchases` reveals a little upward slope, which consistent with usual buyer retention trends, returning consumers are somewhat more inclined to buy again.
 
 
-
-
 ### LIME 
 
 However, although these worldwide techniques help to grasp typical impacts throughout the whole dataset, they cannot clarify why a certain case got its distinctive forecast.
@@ -245,5 +244,86 @@ plot_features(explanation)
   
 
 
+## Non-Linear Model
+Based on the result we got previously from the linear model, we now aim to further investigate some more flexible model. Although the linear model gave us a strong basis and let us understand the patterns and individual feature contributions, it is naturally constrained in its capacity to capture non-linear interactions between variables. Hence we trained a Random Forest mode, which build many decision trees and combining their results, to helps us to explore the interaction effects and they can capture complex, non-linear relationships and interactions between variables. Furthermore, Random Forest is still compatible with interpretation tools like as Permutation Importance, PDP, and LIME, hence allowing a consistent and understandable analysis across modelling techniques.
+
+### Fit the Random Forest Model
+
+We trained the model on the same dataset as the linear models, `sim_data`, and fit the model by buliding 100 decision trees with randomly choose two variables at every split. To assist further interpretation, the model also monitors variable relevance.
+```{r, message = FALSE, warning = FALSE}
+library(randomForest)
+# Fit the random forest model
+rf_model <- randomForest(
+  purchase ~ .,
+  data = sim_data,
+  ntree = 100,
+  importance = TRUE
+)
+
+# View model summary
+print(rf_model)
+```
+Based on the summary result of the model we trained, the Out-of-Bag (OOB) error estimate is 25%, indicating that about 75% of observations were accurately predicted on average by the ensemble. The confusion matrix also shows class-specific errors: a 32% misclassification rate for class no purchase and a 20% misclassification rate for purchase.
+
+
+For the AVPs, while are useful tools for linear models, they are not suitable for non-linear models like Random Forests. This is because AVPs are based on the assumption of linear additivity that they visualize the marginal effect of one predictor on the response after adjusting for others in a linear regression setting. Hence, we rely on the other two plots, PDP and LIME, to interpret non-linear models more appropriately.
+
+### Partial Dependence Plots
+In non-linear models, PDPs help us to better understand how each feature influences the projections of our non-linear model. Even when the model incorporates complex, non-linear interactions, this allows us to see the marginal influence of every variable.
+```{r, message = FALSE, warning = FALSE}
+# Extract numeric variables from sim_data
+num_vars <- sim_data %>%
+  select(where(is.numeric)) %>%
+  colnames()
+
+# Prepare rug data for plotting
+rug_df <- sim_data %>%
+  select(all_of(num_vars)) %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "x")
+
+# Create PDPs for each numeric feature
+pdp_list_rf <- lapply(num_vars, function(var) {
+  pd <- pdp::partial(
+    object = rf_model,
+    pred.var = var,
+    train = sim_data,
+    prob = TRUE
+  )
+  names(pd)[1] <- "x"
+  pd$variable <- var
+  pd
+})
+
+# Combine into single data frame
+pdp_df_rf <- bind_rows(pdp_list_rf)
+
+# Sort variables by standard deviation
+sd_order <- pdp_df_rf %>%
+  group_by(variable) %>%
+  summarise(sd_yhat = sd(yhat)) %>%
+  arrange(desc(sd_yhat))
+
+# Reorder for plotting
+pdp_df_rf$variable <- factor(as.character(pdp_df_rf$variable),
+                             levels = as.character(sd_order$variable))
+rug_df$variable <- factor(as.character(rug_df$variable),
+                          levels = as.character(sd_order$variable))
+
+# Plot
+library(ggplot2)
+ggplot(pdp_df_rf, aes(x = x, y = yhat)) +
+  geom_line(color = "blue", linewidth = 0.7) +
+  geom_rug(data = rug_df, aes(x = x), color = "red", alpha = 0.2, inherit.aes = FALSE) +
+  facet_wrap(~ variable, scales = "free_x") +
+  labs(title = "PDP – Random Forest",
+       x = "Feature Value") +
+  theme_minimal()
+```
+Based on the result from PDP plots, which we plot then in descending standard deviation order, we analysis their trends case by case. 
+
+`category_count`: it shows a stong upward trend, suggesting that consumers who explore more product categories are considerably more likely to buy, probably because of more involvement or interest. `browsing_time` reveals an inverted U-shaped correlation, which means the probability of purchasing rises first but falls significantly after 2.5–3 hours, implying that prolonged browsing could indicate not purchase rather than buying. `clicked_ad` shows a negative linear trend as well, suggesting that people who click on advertising are really less likely to purchase. Likewise, `items_in_cart` has a significant negative slope that could suggest more items in the cart correspond to lower purchase probability. Lastly, `previous_purchases` presents a slight negative effect, suggesting that users with previous purchases show a slightly lower probability of purchasing again. 
+
+
+### LIME
 
 
