@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>2&nbsp; Data – Same Data, Different Stories: Comparing Visual Explanations in Machine Learning</title>
+<title>2&nbsp; Data – Interpretable Modeling of Online Purchase Behavior: Comparison of Linear and Non-linear Models</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -159,7 +159,7 @@ window.Quarto = {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">Same Data, Different Stories: Comparing Visual Explanations in Machine Learning</a> 
+      <a href="./">Interpretable Modeling of Online Purchase Behavior: Comparison of Linear and Non-linear Models</a> 
         <div class="sidebar-tools-main">
     <a href="https://yichaowanggg.github.io/Final-Project-5293/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-git"></i></a>
 </div>
@@ -187,13 +187,13 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./results.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Linear Model</span></span></a>
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results of Linear and Non-linear Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./comparsion.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Compasrion between two models</span></span></a>
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Compasrion between Two Models</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -242,7 +242,7 @@ window.Quarto = {
 
 <section id="description" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="description"><span class="header-section-number">2.1</span> Description</h2>
-<p>Instead of downloading the dataset from website or from the packages, we replicate a dataset that reflects usual user interactions on an online shopping platform in a controlled and interpretable environment to investigate e-commerce buying behavior. The dataset contains both binary and continuous variables often used in consumer behaviour modelling; each observation relates to one user session. From time spent on the website to interaction history, we developed six explanatory variables and one binary response variable (buy) to capture various facets of a user’s purchasing session. The final purchase result is a binary indicator, it equals 1 if the user bought the product and 0 otherwise.</p>
+<p>Instead of downloading the dataset from website or from the packages, we replicate a dataset that reflects usual user interactions on an online shopping platform in a controlled and interpretable environment to investigate e-commerce buying behavior. The dataset contains both binary and continuous variables often used in consumer behaviour modelling; each observation relates to one user session. From time spent on the website to interaction history, we developed six explanatory variables and one binary response variable (purchase) to capture various facets of a user’s purchasing session. The final purchase result is a binary indicator, it equals 1 if the user bought the product and 0 otherwise.</p>
 </section>
 <section id="feature-explanation" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="feature-explanation"><span class="header-section-number">2.2</span> Feature Explanation</h2>
@@ -255,7 +255,7 @@ window.Quarto = {
 <li><code>device_type</code>(categorical): Device used for browsing, coded as “desktop” or “mobile”.</li>
 <li><code>previous_purchase</code>(binary): Whether the user previously made the purchase on the platform (1 = yeas, 0 = no).</li>
 </ul>
-<p>The response variable is also a binary variable:</p>
+<p>The response variable is also a binary variable, showing whether the customer buy the product or not:</p>
 <ul>
 <li><code>purchase</code>(binary): Whether the user complete a purchase during the session (1 = yeas, 0 = no).</li>
 </ul>
@@ -763,8 +763,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./results.html" class="pagination-link" aria-label="Linear Model">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Linear Model</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./results.html" class="pagination-link" aria-label="Results of Linear and Non-linear Models">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results of Linear and Non-linear Models</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
