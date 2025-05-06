@@ -1,7 +1,308 @@
-# Compasrion between two models
+# Compasrion between Two Models
+
+After examining the performance and interpretability of both the logistic regression (linear model) and the random forest (non-linear model) using tools such as AVP, PDP, LIME, and permutation importance, we now turn our focus to comparing the two approaches to see if the identical plot type and dataset will generate different feature importance result for linear and non-linear models. Although every model provides insightful analysis on its own, comparing them side by side helps us to grasp their relative advantages and disadvantages in explaining feature effects, managing interactions, and so forth.
+
+For both models, we created the Partial Dependence Plots and LIME for them, hence we mainly compare the result for these two kinds.
+Before the modelling process, install all packages:
+```{r, echo=TRUE, results='hide', message = FALSE, warning = FALSE}
+# packages
+library(ggplot2)
+library(tidyverse)
+library(broom)
+library(dplyr)
+library(tidyr)
+library(pdp)
+library(lime)
+library(randomForest)
+library(vip)
+```
+
+And load the dataset we simulated before:
+```{r, echo=TRUE, results='hide'}
+set.seed(5293)
+n <- 500
+
+# Generate the features for the dataset
+browsing_time <- rnorm(n, mean = 3, sd = 1)               # hours
+category_count <- rpois(n, lambda = 4)                    # integer count
+clicked_ad <- rbinom(n, 1, prob = 0.35)                   # binary
+items_in_cart <- rpois(n, lambda = 2)                     # integer count
+device_type <- rbinom(n, 1, prob = 0.6)                   # 0 = desktop, 1 = mobile
+previous_purchases <- rbinom(n, 1, prob = 0.25)           # binary
+noise <- rnorm(n, 0, 0.5)
+
+# Simulate outcome
+logit <- -1 + 
+  0.8 * browsing_time - 
+  0.6 * category_count + 
+  1.2 * clicked_ad + 
+  0.5 * items_in_cart + 
+  0.4 * previous_purchases +
+  0.3 * device_type +
+  noise
+
+p <- 1 / (1 + exp(-logit))
+purchase <- rbinom(n, 1, p)
+
+# Assemble data frame
+sim_data <- data.frame(
+  browsing_time,
+  category_count,
+  clicked_ad,
+  items_in_cart,
+  device_type = factor(device_type, levels = c(0, 1), labels = c("desktop", "mobile")),
+  previous_purchases,
+  purchase
+)
+#head(sim_data)
+```
+
+
 
 ## PDP
+We first paste the pdp plots for two models here. The PDP plots for linear model(logistic regression):
+```{r}
+sim_data <- sim_data
+# fit the logistic regression model
+log_model <- glm(purchase ~ ., data = sim_data, family = "binomial")
+#summary(log_model)
+```
+
+```{r}
+# numeric variables (excluding target)
+numeric_vars <- sim_data %>%
+  select(where(is.numeric)) %>%
+  select(-purchase) %>%
+  colnames()
+
+# Compute PDPs
+pdp_list <- lapply(numeric_vars, function(var) {
+  pd <- pdp::partial(
+    object = log_model,
+    pred.var = var,
+    train = sim_data,
+    prob = TRUE
+  )
+  colnames(pd) <- c("x", "yhat")  # rename columns
+  pd$variable <- var
+  return(pd)
+})
+pdp_df <- bind_rows(pdp_list)
+
+# Compute standard deviation of yhat per variable
+sd_order <- pdp_df %>%
+  group_by(variable) %>%
+  summarise(sd_yhat = sd(yhat)) %>%
+  arrange(desc(sd_yhat))
+
+# Reorder variable levels for facet_wrap
+pdp_df$variable <- factor(pdp_df$variable, levels = sd_order$variable)
+
+# Prepare rug data (long format)
+rug_df <- sim_data %>%
+  select(all_of(numeric_vars)) %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "x")
+rug_df$variable <- factor(rug_df$variable, levels = sd_order$variable)
+
+# Final PDP plot with rug
+ggplot(pdp_df, aes(x = x, y = yhat)) +
+  geom_line(color = "blue", linewidth = 0.9) +
+  geom_rug(data = rug_df, aes(x = x), 
+           sides = "b", color = "red", alpha = 0.2, inherit.aes = FALSE) +
+  facet_wrap(~ variable, scales = "free_x") +
+  labs(title = "PDP - Logistic",
+       x = "Feature Value") +
+  theme_minimal()
+```
+
+Here is the PDPs for non-linear model(Random Forest):
+
+```{r, echo=FALSE, results='hide',  fig.show='hide', message = FALSE, warning = FALSE}
+set.seed(5293)
+sim_data$purchase <- as.factor(sim_data$purchase)
+
+model_type.glm <- function(x, ...) 'classification'
+predict_model.glm <- function(x, newdata, type, ...) {
+  preds <- predict(x, newdata = newdata, type = "response")
+  data.frame(`1` = preds, `0` = 1 - preds)
+}
+
+# test train split(choose the first three observations as our instances) 
+test_data <- sim_data[1:3, ]          
+train_data <- sim_data[-(1:3), ]      
+
+# Fit logistic regression on training data
+log_model <- glm(purchase ~ ., data = train_data, family = "binomial")
+
+# explainer
+explainer <- lime::lime(
+  x = train_data %>% select(-purchase),
+  model = log_model,
+  bin_continuous = TRUE
+)
+
+# Perform LIME on the test instances
+explanation <- lime::explain(
+  x = test_data %>% select(-purchase),
+  explainer = explainer,
+  n_labels = 1,
+  n_features = 3
+)
+print(explanation)
+plot_features(explanation)
+```
+
+
+```{r, message = FALSE, warning = FALSE}
+library(randomForest)
+# Fit the random forest model
+set.seed(5293)
+rf_model <- randomForest(
+  purchase ~ .,
+  data = sim_data,
+  ntree = 100,
+  importance = TRUE
+)
+```
+
+```{r, message = FALSE, warning = FALSE}
+# Extract numeric variables from sim_data
+num_vars <- sim_data %>%
+  select(where(is.numeric)) %>%
+  colnames()
+
+# Prepare rug data for plotting
+rug_df <- sim_data %>%
+  select(all_of(num_vars)) %>%
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "x")
+
+# Create PDPs for each numeric feature
+pdp_list_rf <- lapply(num_vars, function(var) {
+  pd <- pdp::partial(
+    object = rf_model,
+    pred.var = var,
+    train = sim_data,
+    prob = TRUE
+  )
+  names(pd)[1] <- "x"
+  pd$variable <- var
+  pd
+})
+
+# Combine into single data frame
+pdp_df_rf <- bind_rows(pdp_list_rf)
+
+# Sort variables by standard deviation
+sd_order <- pdp_df_rf %>%
+  group_by(variable) %>%
+  summarise(sd_yhat = sd(yhat)) %>%
+  arrange(desc(sd_yhat))
+
+# Reorder for plotting
+pdp_df_rf$variable <- factor(as.character(pdp_df_rf$variable),
+                             levels = as.character(sd_order$variable))
+rug_df$variable <- factor(as.character(rug_df$variable),
+                          levels = as.character(sd_order$variable))
+
+# Plot
+library(ggplot2)
+ggplot(pdp_df_rf, aes(x = x, y = yhat)) +
+  geom_line(color = "blue", linewidth = 0.7) +
+  geom_rug(data = rug_df, aes(x = x), color = "red", alpha = 0.2, inherit.aes = FALSE) +
+  facet_wrap(~ variable, scales = "free_x") +
+  labs(title = "PDP – Random Forest",
+       x = "Feature Value") +
+  theme_minimal()
+```
+
+Based on PDP plots from two models, we first found that the overall trends are different for each features, and the order are also different.
+  - Smoothness and flexibility of the patterns: the logistic regression PDPs are consistently linear or monotonic. These plots assume a constant rate of change in purchase probability for each unit increase in a feature, resulting in simple, straight-line relationships. On the other hand, the random forest PDPs are non-linear and shows more complicated correlations such threshold effects, plateaus, and inversions. The curves are often rise and fall at different intervals, which can capture patterns that logistic regression cannot. 
+  
+  - Order of the features: we ordered the features by descending standard deviation for both models, but the result show the different orders:
+    - Similarity: Both models agree that `category_count` and `browsing_time` are the top two most influential features, though they interpret them differently. Moreover, `previous_purchases` consistently ranks lowest in both models, reinforcing its limited standalone predictive power.
+    - Difference: The logistic model places more importance on `items_in_cart`, whereas the random forest elevates `clicked_ad`, possibly due to its non-linear interaction with user behavior.
+
+
+Then for the specific trends of each features, there exist big difference, even some features show complete opposite effects in linear and non-linear models.
+  - `category_count`: Logistic Regression shows a strong negative linear relationship. As the number of categories browsed increases, the predicted purchase probability decreases smoothly. In Random Forest, it initially flat or low, but after about 5 categories, the probability sharply increases. 
+  - `browsing_time`: It predicts a steady positive trend, which means more browsing time always increases purchase probability in logistic regression. However, the result is opposite in random forest, it shows that browsing may reflect confusion, leading to non-purchase result.
+  - `items_in_cart`: In logistic regression, it suggests a positive correlation, meaning that more items in the cart increases the likelihood of purchase. While in random forest, it contradicts this with a negative slope, states that more items lead to lower purchase probability.
+  - `clicked_ad`: It interprets ad clicks as a positive indicator, meaning users who click ads are more likely to purchase in linear model. In non-linear model, it shows a negative coefficient.
+  - `previous_purchases`: Both two models show slightly rends, but different in the positivity and negativity.
+
+While the random forest model finds more realistic and maybe nonlinear behavioural patterns, these comparisons reveal how the logistic regression model tends to impose smooth, monotonic correlations. So that the result trends of features and the order of them are different.
 
 
 
 ## LIME
+
+From the result part, we have already basically analysis the result of the LIME for each model, it shows that the top three importance feature for each instance might be the same, but the score range of them can be slightly different. We first shows that result of two models here. 
+
+First is the LIME for linear model:
+```{r, message = FALSE, warning = FALSE}
+set.seed(5293)
+sim_data$purchase <- as.factor(sim_data$purchase)
+
+model_type.glm <- function(x, ...) 'classification'
+predict_model.glm <- function(x, newdata, type, ...) {
+  preds <- predict(x, newdata = newdata, type = "response")
+  data.frame(`1` = preds, `0` = 1 - preds)
+}
+
+# test train split(choose the first three observations as our instances) 
+test_data <- sim_data[1:3, ]          
+train_data <- sim_data[-(1:3), ]      
+
+# Fit logistic regression on training data
+log_model <- glm(purchase ~ ., data = train_data, family = "binomial")
+
+# explainer
+explainer <- lime::lime(
+  x = train_data %>% select(-purchase),
+  model = log_model,
+  bin_continuous = TRUE
+)
+
+# Perform LIME on the test instances
+explanation <- lime::explain(
+  x = test_data %>% select(-purchase),
+  explainer = explainer,
+  n_labels = 1,
+  n_features = 3
+)
+plot_features(explanation)
+```
+
+Then is the LIME result for non-linear model:
+```{r, message = FALSE, warning = FALSE}
+set.seed(5293)
+model_type.randomForest <- function(x, ...) 'classification'
+
+# Train Random Forest model
+rf_model <- randomForest(purchase ~ ., data = train_data, ntree = 100)
+
+explainer_rf <- lime(
+  x = train_data %>% select(-purchase),
+  model = rf_model,
+  bin_continuous = TRUE
+)
+explanation_rf <- explain(
+  x = test_data %>% select(-purchase),
+  explainer = explainer_rf,
+  n_labels = 1,
+  n_features = 3  # top 3 features per instance
+)
+plot_features(explanation_rf)
+```
+
+Based on the predicted label, the predicted result for three instance of both models are same, meaning that they both correctly predicted the first and the third instance but predicted the second instance wrong. To be more specifically about the internal difference of each instance, we analysis them separately.
+
+  - Case 1: The top 3 features aligned well in terms of direction and ranking, all contributing positively toward a no-purchase prediction. However, the explanation fit was slightly better for the random forest model, suggesting its local approximation might better reflect the actual decision boundary. That said, both models agree in rationale: low items, modest browsing, and moderate category count lowered purchase likelihood.
+  - Case 2: Both models have idential top three features where the most important feature shows a purchase prediction and the `browsing_time` slightly contradicts the prediction. The dominant influence of `category_count` and `items_in_cart` led both to the same false outcome. Additionally, when comparing the probability of two models, logistic regression was more optimistic, it has slightly lower probability of wrong prediction.
+  - Case 3: Similar to previous two instance, the top three features are consistent in both direction and ranking. However, the contradicting effects of `items_in_cart` and `browsing_time` are also retained, but the magnitude differs slightly.
+  
+Overall, in all three instances, both models found `category_count`, `items_in_cart`, and `browsing_time` to be most important. Though their impact size and range may be different, this shows consensus on which variables are most important. Moreover, when looking at the explanation fits, the Logistic regression are slightly higher on average, meaning that its linearity might lead to more predictable local behaviors. In contrast, the value is slightly lower for Random Forest model, indicating that it provide more complexity and less local linearity, making it harder for LIME to approximate.
+
+
+
+

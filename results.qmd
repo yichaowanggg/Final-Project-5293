@@ -248,9 +248,11 @@ Based on the result we got previously from the linear model, we now aim to furth
 ### Fit the Random Forest Model
 
 We trained the model on the same dataset as the linear models, `sim_data`, and fit the model by buliding 100 decision trees with randomly choose two variables at every split. To assist further interpretation, the model also monitors variable relevance.
+
 ```{r, message = FALSE, warning = FALSE}
 library(randomForest)
 # Fit the random forest model
+set.seed(5293)
 rf_model <- randomForest(
   purchase ~ .,
   data = sim_data,
