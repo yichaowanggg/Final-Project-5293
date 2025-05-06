@@ -6,7 +6,7 @@ execute:
   echo: true
 
 book:
-  title: "Same Data, Different Stories: Comparing Visual Explanations in Machine Learning"
+  title: "Interpretable Modeling of Online Purchase Behavior: Comparison of Linear and Non-linear Models"
   author:
     - Yichao Wang (yw4324)
   repo-url: https://yichaowanggg.github.io/Final-Project-5293/

@@ -14,7 +14,7 @@ Specifically, the dataset includes the following predictor variables:
   - `device_type`(categorical): Device used for browsing, coded as “desktop” or “mobile”.
   - `previous_purchase`(binary): Whether the user previously made the purchase on the platform (1 = yeas, 0 = no).
   
-The response variable is also a binary variable:
+The response variable is also a binary variable, showing whether the customer buy the product or not:
 
   - `purchase`(binary): Whether the user complete a purchase during the session (1 = yeas, 0 = no).
   
