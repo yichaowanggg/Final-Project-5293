@@ -1,7 +1,7 @@
 # Data
 
 ## Description
-Instead of downloading the dataset from website or from the packages, we replicate a dataset that reflects usual user interactions on an online shopping platform in a controlled and interpretable environment to investigate e-commerce buying behavior. The dataset contains both binary and continuous variables often used in consumer behaviour modelling; each observation relates to one user session. From time spent on the website to interaction history, we developed six explanatory variables and one binary response variable (buy) to capture various facets of a user's purchasing session. The final purchase result is a binary indicator, it equals 1 if the user bought the product and 0 otherwise.
+Instead of downloading the dataset from website or from the packages, we replicate a dataset that reflects usual user interactions on an online shopping platform in a controlled and interpretable environment to investigate e-commerce buying behavior. The dataset contains both binary and continuous variables often used in consumer behaviour modelling; each observation relates to one user session. From time spent on the website to interaction history, we developed six explanatory variables and one binary response variable (purchase) to capture various facets of a user's purchasing session. The final purchase result is a binary indicator, it equals 1 if the user bought the product and 0 otherwise.
 
 
 ## Feature Explanation
@@ -17,6 +17,7 @@ Specifically, the dataset includes the following predictor variables:
 The response variable is also a binary variable:
 
   - `purchase`(binary): Whether the user complete a purchase during the session (1 = yeas, 0 = no).
+  
 
 ## Data simulation
 To simulate these data, we created the six characteristics and the response variable using frequently used statistical distributions to replicate the dataset. 
