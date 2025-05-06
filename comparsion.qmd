@@ -224,6 +224,7 @@ Based on PDP plots from two models, we first found that the overall trends are d
 
 
 Then for the specific trends of each features, there exist big difference, even some features show complete opposite effects in linear and non-linear models.
+
   - `category_count`: Logistic Regression shows a strong negative linear relationship. As the number of categories browsed increases, the predicted purchase probability decreases smoothly. In Random Forest, it initially flat or low, but after about 5 categories, the probability sharply increases. 
   - `browsing_time`: It predicts a steady positive trend, which means more browsing time always increases purchase probability in logistic regression. However, the result is opposite in random forest, it shows that browsing may reflect confusion, leading to non-purchase result.
   - `items_in_cart`: In logistic regression, it suggests a positive correlation, meaning that more items in the cart increases the likelihood of purchase. While in random forest, it contradicts this with a negative slope, states that more items lead to lower purchase probability.
